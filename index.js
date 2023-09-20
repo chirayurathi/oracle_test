@@ -4,6 +4,7 @@ const path = require('path');
 const SftpClient = require('ssh2-sftp-client'); // Import the ssh2-sftp-client library
 var exec = require('ssh-exec')
 var https = require('https'),
+http = require('http'),
 swaggerJsdoc = require("swagger-jsdoc"),
 swaggerUi = require("swagger-ui-express");
 
@@ -72,8 +73,8 @@ Date.prototype.yyyyMMddHHmmss = function () {
  */
 
 var options = {
-  key: fs.readFileSync('./ssl/privatekey.pem'),
-  cert: fs.readFileSync('./ssl/certificate.pem'),
+  // key: fs.readFileSync('./ssl/entepappvqm3cb9.providence.org.key'),
+  // cert: fs.readFileSync('./ssl/entepappvqm3cb9.providence.org.crt'),
 };
 
 
@@ -84,37 +85,38 @@ app.get('/shellInvocation-0.0.1-SNAPSHOT/shellInvocationController/invokeScript'
     return res.status(400).json({ error: 'Missing parameters' });
   }
   let date = new Date()
-  const filePath = path.join(__dirname, `${date.yyyyMMddHHmmss()}_${InstanceID.padStart(20,'0')}_${InterfaceID.padStart(20,'0')}.txt`);
+  const filePath = path.join('../container', `${date.yyyyMMddHHmmss()}_${InstanceID.padStart(20,'0')}_${InterfaceID.padStart(20,'0')}.txt`);
 
   fs.writeFile(filePath, '', async (err) => {
     if (err) {
       console.error('Error creating file:', err);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
+    res.json({ message: 'File placed successfully.' });
 
-    const sftp = new SftpClient();
+    // const sftp = new SftpClient();
 
-    try {
-      await sftp.connect({
-        host: '170.173.94.63',
-        username: 'serveftp', // Replace with your username
-        password:'syn4Tax#' // Replace with the path to your private key
-      });
+    // try {
+    //   await sftp.connect({
+    //     host: '170.173.94.63',
+    //     username: 'serveftp', // Replace with your username
+    //     password:'syn4Tax#' // Replace with the path to your private key
+    //   });
 
-      await sftp.put(filePath, `${'/home/serveftp/orc_test/'}${date.yyyyMMddHHmmss()}_${InstanceID.padStart(20,'0')}_${InterfaceID.padStart(20,'0')}.txt`);
-      res.json({ message: 'File placed successfully.' });
+    //   await sftp.put(filePath, `${'/home/serveftp/orc_test/'}${date.yyyyMMddHHmmss()}_${InstanceID.padStart(20,'0')}_${InterfaceID.padStart(20,'0')}.txt`);
+    //   res.json({ message: 'File placed successfully.' });
 
-    } catch (err) {
-      console.error('Error:', err.message);
-      res.status(500).json({ error: 'Internal Server Error' });
-    } finally {
-      await sftp.end();
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          console.error('Error deleting file:', err);
-        }
-      });
-    }
+    // } catch (err) {
+    //   console.error('Error:', err.message);
+    //   res.status(500).json({ error: 'Internal Server Error' });
+    // } finally {
+    //   await sftp.end();
+    //   fs.unlink(filePath, (err) => {
+    //     if (err) {
+    //       console.error('Error deleting file:', err);
+    //     }
+    //   });
+    // }
   });
 });
 
@@ -122,9 +124,13 @@ app.get('/shellInvocation-0.0.1-SNAPSHOT/shellInvocationController/invokeScript'
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-var server = https.createServer(options, app).listen(3000, function(){
+https.createServer(options, app).listen(3000, function(){
   console.log("Express server listening on 3000 ");
 });
+
+http.createServer(app).listen(3001, function(){
+  console.log("ddev server running on port 3001");
+})
 
 // app.listen(port, () => {
 //   console.log(`Server is running on port ${port}`);
