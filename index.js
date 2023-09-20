@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const SftpClient = require('ssh2-sftp-client'); // Import the ssh2-sftp-client library
 var exec = require('ssh-exec')
+var https = require('https'),
 swaggerJsdoc = require("swagger-jsdoc"),
 swaggerUi = require("swagger-ui-express");
 
@@ -70,6 +71,12 @@ Date.prototype.yyyyMMddHHmmss = function () {
  *         description: Internal Server Error.
  */
 
+var options = {
+  key: fs.readFileSync('./ssl/privatekey.pem'),
+  cert: fs.readFileSync('./ssl/certificate.pem'),
+};
+
+
 app.get('/shellInvocation-0.0.1-SNAPSHOT/shellInvocationController/invokeScript', async (req, res) => {
   const { InstanceID, InterfaceID, ScriptLocation} = req.query;
   
@@ -115,6 +122,10 @@ app.get('/shellInvocation-0.0.1-SNAPSHOT/shellInvocationController/invokeScript'
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+var server = https.createServer(options, app).listen(3000, function(){
+  console.log("Express server listening on 3000 ");
 });
+
+// app.listen(port, () => {
+//   console.log(`Server is running on port ${port}`);
+// });
